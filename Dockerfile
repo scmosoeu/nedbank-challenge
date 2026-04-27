@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # via Docker volume mounts by the scoring system.
 COPY pipeline/ pipeline/
 COPY config/ config/
+ENV PYTHONPATH="/app"
 
 # Entry point — must run the complete pipeline end-to-end without interactive input.
 # The scoring system uses this CMD directly; do not require TTY or stdin.
