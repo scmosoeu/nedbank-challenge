@@ -1,4 +1,7 @@
 import yaml
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 def read_yaml(path: str) -> dict:
     """
@@ -15,6 +18,7 @@ def read_yaml(path: str) -> dict:
         yaml.YAMLError: If the file is not valid YAML.  
     """
 
+    logger.info(f"Reading YAML file: {path}")
     try:
         with open(path, 'r') as file:
             return yaml.safe_load(file)
