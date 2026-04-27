@@ -26,22 +26,25 @@ Spark configuration tip:
 """
 
 import os
+import yaml
 from delta.tables import DeltaTable
 from datetime import datetime
 
-from src.utils import read_yaml, add_ingestion_timestamp, get_datetime_now
+from src.utils import read_yaml, add_ingestion_timestamp, get_datetime_now, read_csv_data
 from src.sessions import get_spark_session
+from src.logger import get_logger
 
 
-CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "data/config/pipeline_config.yaml")
-DATETIME_FORMAT = '%Y-%m-%d'
+CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.yaml")
+DATETIME_FORMAT = "YYYY-MM-DDThh:mm:ss"
 
-def write_delta_table(df, path):
-    df.write.format("delta").mode("append").save(path)
+# def write_delta_table(df, path):
+#     df.write.format("delta").mode("append").save(path)
 
-
-
-def run_ingestion():
+def run_ingestion() -> None:
+    """
+    Ingest the datasets into a Bronze layer 
+    """
     # TODO: Implement Bronze layer ingestion.
     #
     # Suggested steps:
@@ -51,10 +54,13 @@ def run_ingestion():
     #   4. Read transactions.jsonl → append ingestion_timestamp → write to bronze/transactions/.
     #   5. Read customers.csv → append ingestion_timestamp → write to bronze/customers/.
 
-    
     config = read_yaml(CONFIG_PATH)
+    accounts_path = config['input']['accounts_path']
+
     session = get_spark_session(config)
 
     ingestion_timestamp = get_datetime_now(DATETIME_FORMAT)
-
+    df = read_csv_data(session, accounts_path)
     df = add_ingestion_timestamp(df, ingestion_timestamp)
+
+    print(df.show(5))

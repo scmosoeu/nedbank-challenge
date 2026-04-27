@@ -36,7 +36,7 @@ def read_yaml(path: str) -> dict:
     except Exception as e:
         raise Exception(f"Error reading YAML file: {path}") from e
 
-
+        
 def read_csv_data(session: SparkSession, path: str) -> DataFrame:
     """
     Read a csv file and return the contents as a dataframe
