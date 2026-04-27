@@ -26,22 +26,20 @@ Spark configuration tip:
 """
 
 import os
-from pyspark.sql.functions import lit
 from delta.tables import DeltaTable
 from datetime import datetime
 
-from src.utils import read_yaml
+from src.utils import read_yaml, add_ingestion_timestamp, get_datetime_now
 from src.sessions import get_spark_session
 
 
 CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "data/config/pipeline_config.yaml")
-
+DATETIME_FORMAT = '%Y-%m-%d'
 
 def write_delta_table(df, path):
     df.write.format("delta").mode("append").save(path)
 
-def append_ingestion_timestamp(df):
-    return df.withColumn("ingestion_timestamp", lit(datetime.now()))
+
 
 def run_ingestion():
     # TODO: Implement Bronze layer ingestion.
@@ -56,3 +54,7 @@ def run_ingestion():
     
     config = read_yaml(CONFIG_PATH)
     session = get_spark_session(config)
+
+    ingestion_timestamp = get_datetime_now(DATETIME_FORMAT)
+
+    df = add_ingestion_timestamp(df, ingestion_timestamp)
