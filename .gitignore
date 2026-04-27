@@ -3,6 +3,9 @@
 # any output baked into your image is unreachable.
 output/
 tmp/
+notebooks/
+pyproject.toml
+uv.lock
 
 # Python
 __pycache__/
@@ -14,6 +17,7 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
+.env
 env/
 
 # macOS
