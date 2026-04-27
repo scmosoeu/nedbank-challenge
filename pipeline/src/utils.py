@@ -1,6 +1,4 @@
 import yaml
-from src.logger import get_logger
-
 
 def read_yaml(path: str) -> dict:
     """
