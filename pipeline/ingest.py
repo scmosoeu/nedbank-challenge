@@ -25,6 +25,23 @@ Spark configuration tip:
   Configure Delta Lake using the builder pattern shown in the base image docs.
 """
 
+import os
+from pyspark.sql.functions import lit
+from delta.tables import DeltaTable
+from datetime import datetime
+
+from src.utils import read_yaml
+from src.sessions import get_spark_session
+
+
+CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "data/config/pipeline_config.yaml")
+
+
+def write_delta_table(df, path):
+    df.write.format("delta").mode("append").save(path)
+
+def append_ingestion_timestamp(df):
+    return df.withColumn("ingestion_timestamp", lit(datetime.now()))
 
 def run_ingestion():
     # TODO: Implement Bronze layer ingestion.
@@ -35,4 +52,7 @@ def run_ingestion():
     #   3. Read accounts.csv → append ingestion_timestamp → write to bronze/accounts/.
     #   4. Read transactions.jsonl → append ingestion_timestamp → write to bronze/transactions/.
     #   5. Read customers.csv → append ingestion_timestamp → write to bronze/customers/.
-    pass
+
+    
+    config = read_yaml(CONFIG_PATH)
+    session = get_spark_session(config)
