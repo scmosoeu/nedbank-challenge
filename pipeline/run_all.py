@@ -22,3 +22,4 @@ if __name__ == "__main__":
     run_ingestion()
     run_transformation()
     run_provisioning()
+    print('Pipeline completed!!')
