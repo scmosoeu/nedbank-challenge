@@ -12,10 +12,7 @@ def get_spark_session(config: dict) -> SparkSession:
         A Spark session with Delta Lake support.
     """
     
-    spark = SparkSession.builder.appName(
-        config["spark"]["app_name"]
-    ).master(
-        config['spark']['master']
-    )
-    
-    return spark.getOrCreate()
+    return SparkSession.builder \
+        .appName(config["spark"]["app_name"]) \
+        .master(config["spark"]["master"]) \
+        .getOrCreate()
