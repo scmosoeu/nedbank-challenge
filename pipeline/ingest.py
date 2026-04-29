@@ -36,7 +36,7 @@ from src.logger import get_logger
 
 
 CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.yaml")
-DATETIME_FORMAT = "YYYY-MM-DDThh:mm:ss"
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 # def write_delta_table(df, path):
 #     df.write.format("delta").mode("append").save(path)
