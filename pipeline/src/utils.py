@@ -5,6 +5,7 @@ from datetime import datetime
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import lit
 
+from src.helper import get_datetime_now
 from src.logger import get_logger
 
 
@@ -56,25 +57,9 @@ def read_csv_data(session: SparkSession, path: str) -> DataFrame:
     return spark_df
 
 
-def get_datetime_now(datetime_format: str) -> str:
-    """
-    Get the current date when the function is called
-
-    Args:
-        datetime_format: The format of how the datetime
-            field will be recorded
-    Returns:
-        The date when the pipeline ran
-    """
-    
-    datetime_now = datetime.now()
-
-    return datetime.strftime(datetime_now, datetime_format)
-
-
 def add_ingestion_timestamp(
     df: DataFrame, 
-    ingestion_timestamp: str
+    datetime_format: str
 ) -> DataFrame:
     """
     Append the ingestion timestamp to the dataframe
@@ -82,12 +67,15 @@ def add_ingestion_timestamp(
     Args:
         df: A spark dataframe containing contents from the 
             data read
-        ingestion_timestamp: The time the data was ingested
+        datetime_format: The format the datetime variable is following,
+            e.g. iso 8601 format
     
     Returns:
         A spark dataframe with an additional ingestion_timestamp
         field added
     """
+
+    ingestion_timestamp = get_datetime_now(datetime_format)
 
     logger.info(f"Adding the ingestion_timestamp field")
     return df.withColumn("ingestion_timestamp", lit(ingestion_timestamp))
