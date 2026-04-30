@@ -34,9 +34,14 @@ from src.utils import read_yaml, add_ingestion_timestamp, get_datetime_now, read
 from src.sessions import get_spark_session
 from src.logger import get_logger
 
+ACCOUNTS_DIR = 'accounts/'
+TRANSACTIONS_DIR = 'transactions/'
+CUSTOMERS_DIR = 'customers/'
+
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.yaml")
-DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
+
 
 # def write_delta_table(df, path):
 #     df.write.format("delta").mode("append").save(path)
@@ -55,12 +60,15 @@ def run_ingestion() -> None:
     #   5. Read customers.csv → append ingestion_timestamp → write to bronze/customers/.
 
     config = read_yaml(CONFIG_PATH)
-    accounts_path = config['input']['accounts_path']
+    bronze_path = config['output']['bronze_path'] 
+    accounts_input_path = config['input']['accounts_path']
+
+    accounts_output_path = os.path.join(bronze_path, ACCOUNTS_DIR) 
 
     session = get_spark_session(config)
 
     ingestion_timestamp = get_datetime_now(DATETIME_FORMAT)
-    df = read_csv_data(session, accounts_path)
+    df = read_csv_data(session, accounts_input_path)
     df = add_ingestion_timestamp(df, ingestion_timestamp)
 
     print(df.show(5))
