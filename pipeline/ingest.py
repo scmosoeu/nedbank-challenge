@@ -28,9 +28,8 @@ Spark configuration tip:
 import os
 import yaml
 from delta.tables import DeltaTable
-from datetime import datetime
 
-from src.utils import read_yaml, add_ingestion_timestamp, get_datetime_now, read_csv_data
+from src.utils import read_yaml, add_ingestion_timestamp, read_csv_data
 from src.sessions import get_spark_session
 from src.logger import get_logger
 
@@ -67,8 +66,7 @@ def run_ingestion() -> None:
 
     session = get_spark_session(config)
 
-    ingestion_timestamp = get_datetime_now(DATETIME_FORMAT)
     df = read_csv_data(session, accounts_input_path)
-    df = add_ingestion_timestamp(df, ingestion_timestamp)
+    df = add_ingestion_timestamp(df, DATETIME_FORMAT)
 
     print(df.show(5))
