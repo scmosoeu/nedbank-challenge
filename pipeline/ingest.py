@@ -33,7 +33,7 @@ from src.utils import read_yaml, add_ingestion_timestamp, read_csv_data
 from src.sessions import get_spark_session
 from src.logger import get_logger
 
-ACCOUNTS_DIR = 'accounts/'
+ACCOUNTS_DIR = 'accounts'
 TRANSACTIONS_DIR = 'transactions/'
 CUSTOMERS_DIR = 'customers/'
 
@@ -41,9 +41,11 @@ DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.yaml")
 
+logger = get_logger(__name__)
 
-# def write_delta_table(df, path):
-#     df.write.format("delta").mode("append").save(path)
+def write_delta_table(df, path):
+    df.write.option("compression", "uncompressed").mode("overwrite").parquet(path)
+    logger.info("Data Saved successfully")
 
 def run_ingestion() -> None:
     """
@@ -68,5 +70,7 @@ def run_ingestion() -> None:
 
     df = read_csv_data(session, accounts_input_path)
     df = add_ingestion_timestamp(df, DATETIME_FORMAT)
+
+    write_delta_table(df, accounts_output_path)
 
     print(df.show(5))
