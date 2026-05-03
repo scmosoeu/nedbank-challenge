@@ -26,7 +26,6 @@ Spark configuration tip:
 """
 
 import os
-from re import DEBUG
 
 from src.utils import read_yaml, add_ingestion_timestamp, read_json_data, read_csv_data, write_delta_table
 from src.sessions import get_spark_session
