@@ -52,7 +52,35 @@ def read_csv_data(session: SparkSession, path: str) -> DataFrame:
     """
 
     logger.info(f'Reading csv file: {path}')
-    spark_df = session.read.csv(path=path, header=True)
+    spark_df = (
+        session.read.format("csv")
+                    .option("header", "true")
+                    .option("inferSchema", "true")
+                    .load(path)
+    )
+
+    return spark_df
+
+
+def read_json_data(session: SparkSession, path: str) -> DataFrame:
+    """
+    Read a json file and return the contents 
+    as a dataframe
+
+    Args:
+        session: A pyspark session
+        path: The path to the json file
+
+    Returns:
+        A spark dataframe containing the contents of
+        the json file
+    """
+
+    logger.info(f'Reading json file: {path}')
+    spark_df = (
+        session.read.format("json")
+                    .load(path)
+    )
 
     return spark_df
 
@@ -77,5 +105,5 @@ def add_ingestion_timestamp(
 
     ingestion_timestamp = get_datetime_now(datetime_format)
 
-    logger.info(f"Adding the ingestion_timestamp field")
+    logger.info(f"Ingestion timestamp: {ingestion_timestamp}")
     return df.withColumn("ingestion_timestamp", lit(ingestion_timestamp))
