@@ -28,6 +28,21 @@ Requirements:
 See output_schema_spec.md for the complete field-by-field specification.
 """
 
+import os
+from src.schemas.accounts_schema import update_accounts_schema_gold
+from src.schemas.customers_schema import update_customers_schema_gold
+from src.schemas.transactions_schema import update_transactions_schema_gold
+from src.utils.config_loader import read_yaml
+from src.utils.file_reader import read_delta_table
+from src.utils.file_writer import write_delta_table
+from src.utils.sessions import get_spark_session
+
+
+ACCOUNTS_DIR = 'accounts'
+TRANSACTIONS_DIR = 'transactions'
+CUSTOMERS_DIR = 'customers'
+
+CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.yaml")
 
 def run_provisioning():
     # TODO: Implement Gold layer provisioning.
@@ -41,4 +56,50 @@ def run_provisioning():
     #   6. Build fact_transactions, resolving account_sk and customer_sk via joins.
     #   7. Write all three Gold tables as Delta Parquet.
     #   8. (Stage 2+) Write dq_report.json to /data/output/.
-    pass
+    
+    config = read_yaml(CONFIG_PATH)
+    silver_path = config['output']['silver_path']
+    gold_path = config['output']['gold_path']
+
+    accounts_input_path = os.path.join(silver_path, ACCOUNTS_DIR)
+    transactions_input_path = os.path.join(silver_path, TRANSACTIONS_DIR) 
+    customers_input_path = os.path.join(silver_path, CUSTOMERS_DIR)
+
+    accounts_output_path = os.path.join(gold_path, f"dim_{ACCOUNTS_DIR}")
+    transactions_output_path = os.path.join(gold_path, f"fact_{TRANSACTIONS_DIR}") 
+    customers_output_path = os.path.join(gold_path, f"dim_{CUSTOMERS_DIR}")
+
+    spark_session = get_spark_session(config)
+
+    accounts_df = read_delta_table(spark_session, accounts_input_path)
+    dim_accounts_df = update_accounts_schema_gold(accounts_df)
+    write_delta_table(dim_accounts_df, accounts_output_path)
+
+
+    customers_df = read_delta_table(spark_session, customers_input_path)
+    dim_customers_df = update_customers_schema_gold(customers_df)
+    write_delta_table(dim_customers_df, customers_output_path)
+
+    # Create a mapping between customer_id and account_id to get
+    # account_sk and customer_sk into fact_transactions
+    customer_account_df = (
+        dim_customers_df.select('customer_id', 'customers_sk')
+        .join(
+            other=dim_accounts_df.select(
+                'account_id', 'customer_id', 'accounts_sk'
+            ),
+            on='customer_id',
+            how='inner'
+        ).drop('customer_id')
+    )
+
+    transactions_df = read_delta_table(spark_session, transactions_input_path)
+    fact_transactions_df = update_transactions_schema_gold(transactions_df)
+
+    fact_transactions_df = fact_transactions_df.join(
+        other=customer_account_df,
+        on='account_id',
+        how='left'
+    ).drop('account_id')
+
+    write_delta_table(fact_transactions_df, transactions_output_path)
