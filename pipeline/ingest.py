@@ -27,27 +27,22 @@ Spark configuration tip:
 
 import os
 from re import DEBUG
-import yaml
-from delta.tables import DeltaTable
 
-from src.utils import read_yaml, add_ingestion_timestamp, read_csv_data
+from src.utils import read_yaml, add_ingestion_timestamp, read_json_data, read_csv_data, write_delta_table
 from src.sessions import get_spark_session
 from src.logger import get_logger
 
 ACCOUNTS_DIR = 'accounts'
-TRANSACTIONS_DIR = 'transactions/'
-CUSTOMERS_DIR = 'customers/'
+TRANSACTIONS_DIR = 'transactions'
+CUSTOMERS_DIR = 'customers'
 
+# iso 8601 format
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.yaml")
 
 logger = get_logger(__name__)
 
-def write_delta_table(df, path):
-    # df.write.option("compression", "uncompressed").mode("overwrite").parquet(path)
-    df.write.format("delta").mode("append").option("compression", "gzip").save(path)
-    logger.info("Data Saved successfully")
 
 def run_ingestion() -> None:
     """
@@ -63,16 +58,26 @@ def run_ingestion() -> None:
     #   5. Read customers.csv → append ingestion_timestamp → write to bronze/customers/.
 
     config = read_yaml(CONFIG_PATH)
-    bronze_path = config['output']['bronze_path'] 
-    accounts_input_path = config['input']['accounts_path']
+    bronze_path = config['output']['bronze_path']
 
-    accounts_output_path = os.path.join(bronze_path, ACCOUNTS_DIR) 
+    accounts_input_path = config['input']['accounts_path']
+    transactions_input_path = config['input']['transactions_path']
+    customers_input_path = config['input']['customers_path']
+
+    accounts_output_path = os.path.join(bronze_path, ACCOUNTS_DIR)
+    transactions_output_path = os.path.join(bronze_path, TRANSACTIONS_DIR) 
+    customers_output_path = os.path.join(bronze_path, CUSTOMERS_DIR)  
 
     spark_session = get_spark_session(config)
 
-    df = read_csv_data(spark_session, accounts_input_path)
-    df = add_ingestion_timestamp(df, DATETIME_FORMAT)
+    accounts_df = read_csv_data(spark_session, accounts_input_path)
+    accounts_df = add_ingestion_timestamp(accounts_df, DATETIME_FORMAT)
+    write_delta_table(accounts_df, accounts_output_path)
 
-    write_delta_table(df, accounts_output_path)
+    transactions_df = read_json_data(spark_session, transactions_input_path)
+    transactions_df = add_ingestion_timestamp(transactions_df, DATETIME_FORMAT)
+    write_delta_table(transactions_df, transactions_output_path)
 
-    print(df.show(5))
+    customers_df = read_csv_data(spark_session, customers_input_path)
+    customers_df = add_ingestion_timestamp(customers_df, DATETIME_FORMAT)
+    write_delta_table(customers_df, customers_output_path)
