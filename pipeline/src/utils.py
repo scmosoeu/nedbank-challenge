@@ -85,6 +85,27 @@ def read_json_data(session: SparkSession, path: str) -> DataFrame:
     return spark_df
 
 
+def write_delta_table(df: DataFrame, path: str) -> None:
+	"""
+	Write the provided DataFrame using the Delta format,
+    appending to any existing data at the destination path. 
+	Data is compressed using gzip to reduce storage size.
+
+    Args:
+        df: The Spark DataFrame to be written.
+        path: Object storage path where the Delta
+            table is stored.
+    
+	Returns:
+        None
+	"""
+	
+	df.write.format("delta") \
+			.mode("append") \
+			.option("compression", "gzip") \
+			.save(path)
+
+
 def add_ingestion_timestamp(
     df: DataFrame, 
     datetime_format: str
