@@ -29,7 +29,6 @@ import os
 
 from src.utils import read_yaml, add_ingestion_timestamp, read_json_data, read_csv_data, write_delta_table
 from src.sessions import get_spark_session
-from src.logger import get_logger
 
 ACCOUNTS_DIR = 'accounts'
 TRANSACTIONS_DIR = 'transactions'
@@ -39,8 +38,6 @@ CUSTOMERS_DIR = 'customers'
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.yaml")
-
-logger = get_logger(__name__)
 
 
 def run_ingestion() -> None:
