@@ -1,7 +1,9 @@
+from datetime import datetime
+
 import pyspark.sql.functions as F
+
 from pyspark.sql import DataFrame
 
-from src.helper.datetime_helper import get_datetime_now
 from src.helper.logger import get_logger
 
 
@@ -25,7 +27,9 @@ def add_ingestion_timestamp(
         field added
     """
 
-    ingestion_timestamp = get_datetime_now(datetime_format)
+    datetime_now = datetime.now()
+
+    ingestion_timestamp = datetime.strftime(datetime_now, datetime_format)
 
     logger.info(f"Ingestion timestamp: {ingestion_timestamp}")
     return df.withColumn("ingestion_timestamp", F.lit(ingestion_timestamp))
