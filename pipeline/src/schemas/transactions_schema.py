@@ -51,7 +51,7 @@ def update_transactions_schema(df: DataFrame) -> DataFrame:
         flatten_df
             .withColumn("transaction_date", F.col("transaction_date").cast(T.DateType()))
             .withColumn("retry_flag", F.col("retry_flag").cast(T.BooleanType()))
+            .withColumn('currency', F.lit('ZAR'))
     )
    
-
     return standard_df
