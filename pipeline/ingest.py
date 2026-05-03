@@ -27,8 +27,11 @@ Spark configuration tip:
 
 import os
 
-from src.utils import read_yaml, add_ingestion_timestamp, read_json_data, read_csv_data, write_delta_table
-from src.sessions import get_spark_session
+from src.utils.config_loader import read_yaml
+from src.utils.dataframe_transforms import add_ingestion_timestamp
+from src.utils.file_reader import read_json_data, read_csv_data
+from src.utils.file_writer import write_delta_table
+from src.utils.sessions import get_spark_session
 
 ACCOUNTS_DIR = 'accounts'
 TRANSACTIONS_DIR = 'transactions'
