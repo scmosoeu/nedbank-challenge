@@ -31,7 +31,7 @@ def flatten_transactions_nested_field(df: DataFrame) -> DataFrame:
     return flatten_df
 
 
-def update_transactions_fields(df: DataFrame) -> DataFrame:
+def update_transactions_schema(df: DataFrame) -> DataFrame:
     """
     Update to a standardised schema for the transactions 
     DataFrame by casting columns to their expected 
