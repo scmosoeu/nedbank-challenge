@@ -30,9 +30,9 @@ definitions.
 """
 
 import os
-from src.schemas.accounts_schema import update_accounts_schema
-from src.schemas.customers_schema import update_customers_schema
-from src.schemas.transactions_schema import update_transactions_schema
+from src.schemas.accounts_schema import update_accounts_schema_silver
+from src.schemas.customers_schema import update_customers_schema_silver
+from src.schemas.transactions_schema import update_transactions_schema_silver
 from src.utils.config_loader import read_yaml
 from src.utils.dataframe_transforms import remove_duplicates
 from src.utils.file_reader import read_delta_table
@@ -78,15 +78,15 @@ def run_transformation() -> None:
 
     accounts_df = read_delta_table(spark_session, accounts_input_path)
     accounts_df = remove_duplicates(accounts_df, subset=['account_id'])
-    accounts_df = update_accounts_schema(accounts_df)
+    accounts_df = update_accounts_schema_silver(accounts_df)
     write_delta_table(accounts_df, accounts_output_path)
 
     customers_df = read_delta_table(spark_session, customers_input_path)
     customers_df = remove_duplicates(customers_df, subset=['customer_id'])
-    customers_df = update_customers_schema(customers_df)
+    customers_df = update_customers_schema_silver(customers_df)
     write_delta_table(customers_df, customers_output_path)
 
     transactions_df = read_delta_table(spark_session, transactions_input_path)
     transactions_df = remove_duplicates(transactions_df, subset=['transaction_id'])
-    transactions_df = update_transactions_schema(transactions_df)
+    transactions_df = update_transactions_schema_silver(transactions_df)
     write_delta_table(transactions_df, transactions_output_path)

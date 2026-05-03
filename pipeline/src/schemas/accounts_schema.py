@@ -4,7 +4,7 @@ import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
 
 
-def update_accounts_schema(df: DataFrame) -> DataFrame:
+def update_accounts_schema_silver(df: DataFrame) -> DataFrame:
     """
     Update to a standardised schema for the accounts 
     DataFrame by casting columns to their expected 
