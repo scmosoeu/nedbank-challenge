@@ -25,3 +25,59 @@ def update_customers_schema_silver(df: DataFrame) -> DataFrame:
     )
 
     return standard_df
+
+
+def add_age_bands(df: DataFrame) -> DataFrame:
+    """
+    Enriches the input DataFrame with age-derived features based on date of birth
+    and pipeline ingestion timestamp.
+
+    Args:
+        df: Input Spark DataFrame containing at minimum:
+            - ingestion_timestamp (timestamp or string castable to date)
+            - dob (date of birth)
+    
+    Returns:
+        A Spark DataFrame enriched with age_band as categorical
+        features
+    """
+    
+
+    df= (
+        df.withColumn("pipeline_run_date", F.col('ingestion_timestamp').cast(T.DateType()))
+        .withColumn("age", F.floor(F.datediff(F.col("pipeline_run_date"), F.col("dob")) / 365.25))
+        .withColumn(
+            "age_band",
+            F.when(F.col("age") >= 65, "65+")
+            .when(F.col("age") >= 56, "56-65")
+            .when(F.col("age") >= 46, "46-55")
+            .when(F.col("age") >= 36, "36-45")
+            .when(F.col("age") >= 26, "26-35")
+            .when(F.col("age") >= 18, "18-25")
+            .otherwise(None)
+        )
+    )
+
+    return df
+
+
+
+def update_customers_schema_gold(df: DataFrame) -> DataFrame:
+    """
+    Update the accounts schema to gold layer schema
+
+    Args:
+        df: Input Spark DataFrame containing silver layer
+            schema.
+
+    Returns:
+        A Spark DataFrame containing gold standard schema.
+    """
+
+    df = add_age_bands(df)
+
+    gold_df = df.withColumn(
+        "customers_sk", F.xxhash64("customer_id") # cast to bigint
+    ).drop("id_number", "first_name", "last_name", "dob")
+    
+    return gold_df
