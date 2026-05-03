@@ -51,7 +51,42 @@ def update_transactions_schema_silver(df: DataFrame) -> DataFrame:
         flatten_df
             .withColumn("transaction_date", F.col("transaction_date").cast(T.DateType()))
             .withColumn("retry_flag", F.col("retry_flag").cast(T.BooleanType()))
+            .withColumn("ingestion_timestamp", F.col("ingestion_timestamp").cast(T.TimestampType()))
+            .withColumn(
+                'transaction_timestamp', 
+                F.concat_ws(
+                    'T', F.col('transaction_date'), F.col('transaction_time')
+                ).cast(T.TimestampType())
+            )
             .withColumn('currency', F.lit('ZAR'))
     )
    
     return standard_df
+
+
+def update_transactions_schema_gold(df: DataFrame) -> DataFrame:
+    """
+    Update to a standardised schema for the transactions 
+    DataFrame by casting columns to their expected 
+    data types.
+
+    Args:
+        df: Input Spark DataFrame containing raw transaction data.
+
+    Returns:
+        A Spark DataFrame with all columns cast to their
+        standardised schema.
+    """
+
+    gold_df = df.withColumn(
+        "transaction_sk", F.xxhash64("transaction_id") # cast to bigint
+    ).drop(
+        "transaction_time",
+        "city",
+        "coordinates",
+        "device_id",
+        "retry_flag",
+        "session_id"
+    )
+   
+    return gold_df
