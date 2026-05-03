@@ -24,5 +24,5 @@ def write_delta_table(df: DataFrame, path: str) -> None:
 
 	df.write.format("delta") \
         .mode("append") \
-        .option("compression", "gzip") \
+        .option("compression", "uncompressed") \
         .save(path)
