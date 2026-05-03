@@ -29,8 +29,29 @@ See output_schema_spec.md §8 for the full list of DQ flag values and their
 definitions.
 """
 
+import os
+from src.schemas.accounts_schema import update_accounts_schema
+from src.schemas.customers_schema import update_customers_schema
+from src.schemas.transactions_schema import update_transactions_schema
+from src.utils.config_loader import read_yaml
+from src.utils.dataframe_transforms import remove_duplicates
+from src.utils.file_reader import read_delta_table
+from src.utils.file_writer import write_delta_table
+from src.utils.sessions import get_spark_session
 
-def run_transformation():
+ACCOUNTS_DIR = 'accounts'
+TRANSACTIONS_DIR = 'transactions'
+CUSTOMERS_DIR = 'customers'
+
+CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.yaml")
+
+
+def run_transformation() -> None:
+    """
+    Extract the datasets from the Bronze layer and 
+    ingest them into a Silver layer after applying
+    transformations
+    """
     # TODO: Implement Silver layer transformation.
     #
     # Suggested steps:
@@ -40,4 +61,32 @@ def run_transformation():
     #   4. Deduplicate, type-cast, and standardise each table.
     #   5. Apply DQ flagging to the transactions table.
     #   6. Write cleaned tables to silver/.
-    pass
+    
+    config = read_yaml(CONFIG_PATH)
+    bronze_path = config['output']['bronze_path']
+    silver_path = config['output']['silver_path']
+
+    accounts_input_path = os.path.join(bronze_path, ACCOUNTS_DIR)
+    transactions_input_path = os.path.join(bronze_path, TRANSACTIONS_DIR) 
+    customers_input_path = os.path.join(bronze_path, CUSTOMERS_DIR)
+
+    accounts_output_path = os.path.join(silver_path, ACCOUNTS_DIR)
+    transactions_output_path = os.path.join(silver_path, TRANSACTIONS_DIR) 
+    customers_output_path = os.path.join(silver_path, CUSTOMERS_DIR)  
+
+    spark_session = get_spark_session(config)
+
+    accounts_df = read_delta_table(spark_session, accounts_input_path)
+    accounts_df = remove_duplicates(accounts_df, subset=['account_id'])
+    accounts_df = update_accounts_schema(accounts_df)
+    write_delta_table(accounts_df, accounts_output_path)
+
+    customers_df = read_delta_table(spark_session, customers_input_path)
+    customers_df = remove_duplicates(customers_df, subset=['customer_id'])
+    customers_df = update_customers_schema(customers_df)
+    write_delta_table(customers_df, customers_output_path)
+
+    transactions_df = read_delta_table(spark_session, transactions_input_path)
+    transactions_df = remove_duplicates(transactions_df, subset=['transaction_id'])
+    transactions_df = update_transactions_schema(transactions_df)
+    write_delta_table(transactions_df, transactions_output_path)
