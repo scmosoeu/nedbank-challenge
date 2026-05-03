@@ -1,7 +1,5 @@
 import yaml
 
-from datetime import datetime
-
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import lit
 
@@ -104,6 +102,26 @@ def write_delta_table(df: DataFrame, path: str) -> None:
 			.mode("append") \
 			.option("compression", "gzip") \
 			.save(path)
+
+
+def read_delta_table(session: SparkSession, path: str) -> DataFrame:
+    """
+    Read a Delta table from the specified path into a Spark DataFrame.
+
+    Args:
+        session: The active Spark session used to perform the 
+            read operation.
+        path: The object storage path where the Delta table 
+            is stored.
+
+    Returns:
+        pyspark.sql.DataFrame: A Spark DataFrame containing the 
+            data read from the Delta table.
+    """
+    
+    spark_df = session.read.format("delta").load(path)
+
+    return spark_df
 
 
 def add_ingestion_timestamp(
