@@ -6,6 +6,7 @@ tmp/
 notebooks/
 pyproject.toml
 uv.lock
+*_image.sh
 
 # Python
 __pycache__/
