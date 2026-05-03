@@ -29,3 +29,22 @@ def add_ingestion_timestamp(
 
     logger.info(f"Ingestion timestamp: {ingestion_timestamp}")
     return df.withColumn("ingestion_timestamp", F.lit(ingestion_timestamp))
+
+
+def remove_duplicates(df: DataFrame, subset: list[str]) -> DataFrame:
+    """
+    Remove duplicate rows in a spark dataframe
+
+    Args:
+        df: A spark dataframe containing data to
+            be checked for presence of duplicate
+            entries
+        subset: A list of columns to use for comparing
+            the duplicates
+
+    Returns:
+        A spark dataframe without duplicates
+    """
+
+    logger.info("Deduplicate the dataset")
+    return df.dropDuplicates(subset=subset)
