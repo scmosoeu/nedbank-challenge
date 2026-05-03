@@ -26,6 +26,7 @@ Spark configuration tip:
 """
 
 import os
+from re import DEBUG
 import yaml
 from delta.tables import DeltaTable
 
@@ -44,7 +45,8 @@ CONFIG_PATH = os.environ.get("PIPELINE_CONFIG", "/data/config/pipeline_config.ya
 logger = get_logger(__name__)
 
 def write_delta_table(df, path):
-    df.write.option("compression", "uncompressed").mode("overwrite").parquet(path)
+    # df.write.option("compression", "uncompressed").mode("overwrite").parquet(path)
+    df.write.format("delta").mode("append").option("compression", "gzip").save(path)
     logger.info("Data Saved successfully")
 
 def run_ingestion() -> None:
@@ -66,9 +68,9 @@ def run_ingestion() -> None:
 
     accounts_output_path = os.path.join(bronze_path, ACCOUNTS_DIR) 
 
-    session = get_spark_session(config)
+    spark_session = get_spark_session(config)
 
-    df = read_csv_data(session, accounts_input_path)
+    df = read_csv_data(spark_session, accounts_input_path)
     df = add_ingestion_timestamp(df, DATETIME_FORMAT)
 
     write_delta_table(df, accounts_output_path)
