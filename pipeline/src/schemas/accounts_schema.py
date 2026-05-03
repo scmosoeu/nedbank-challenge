@@ -28,3 +28,24 @@ def update_accounts_schema_silver(df: DataFrame) -> DataFrame:
     )
 
     return standard_df
+
+
+def update_accounts_schema_gold(df: DataFrame) -> DataFrame:
+    """
+    Update the accounts schema to gold layer schema
+
+    Args:
+        df: Input Spark DataFrame containing silver layer
+            schema.
+
+    Returns:
+        A Spark DataFrame containing gold standard schema.
+    """
+
+    df = df.withColumnRenamed('customer_ref', 'customer_id')
+
+    gold_df = df.withColumn(
+        "accounts_sk", F.xxhash64("account_id")
+    ) # cast to bigint
+    
+    return gold_df
