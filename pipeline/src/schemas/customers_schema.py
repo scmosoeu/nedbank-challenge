@@ -61,7 +61,6 @@ def add_age_bands(df: DataFrame) -> DataFrame:
     return df
 
 
-
 def update_customers_schema_gold(df: DataFrame) -> DataFrame:
     """
     Update the accounts schema to gold layer schema
@@ -78,6 +77,15 @@ def update_customers_schema_gold(df: DataFrame) -> DataFrame:
 
     gold_df = df.withColumn(
         "customers_sk", F.xxhash64("customer_id") # cast to bigint
-    ).drop("id_number", "first_name", "last_name", "dob")
+    ).drop(
+        "id_number", 
+        "first_name", 
+        "last_name", 
+        "dob",
+        "product_flags",
+        "ingestion_timestamp",
+        "pipeline_run_date",
+        "age"
+    )
     
     return gold_df

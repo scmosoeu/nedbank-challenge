@@ -45,7 +45,9 @@ def update_accounts_schema_gold(df: DataFrame) -> DataFrame:
     df = df.withColumnRenamed('customer_ref', 'customer_id')
 
     gold_df = df.withColumn(
-        "accounts_sk", F.xxhash64("account_id")
-    ) # cast to bigint
+        "accounts_sk", F.xxhash64("account_id") # cast to bigint
+    ).drop(
+        "mobile_number", "ingestion_timestamp"
+    )
     
     return gold_df
