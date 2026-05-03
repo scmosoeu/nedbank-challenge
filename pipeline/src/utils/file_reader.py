@@ -1,7 +1,5 @@
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import lit
 
-from src.helper.datetime_helper import get_datetime_now
 from src.helper.logger import get_logger
 
 
@@ -54,27 +52,6 @@ def read_json_data(session: SparkSession, path: str) -> DataFrame:
     return spark_df
 
 
-def write_delta_table(df: DataFrame, path: str) -> None:
-	"""
-	Write the provided DataFrame using the Delta format,
-    appending to any existing data at the destination path. 
-	Data is compressed using gzip to reduce storage size.
-
-    Args:
-        df: The Spark DataFrame to be written.
-        path: Object storage path where the Delta
-            table is stored.
-    
-	Returns:
-        None
-	"""
-	
-	df.write.format("delta") \
-			.mode("append") \
-			.option("compression", "gzip") \
-			.save(path)
-
-
 def read_delta_table(session: SparkSession, path: str) -> DataFrame:
     """
     Read a Delta table from the specified path into a Spark DataFrame.
@@ -93,27 +70,3 @@ def read_delta_table(session: SparkSession, path: str) -> DataFrame:
     spark_df = session.read.format("delta").load(path)
 
     return spark_df
-
-
-def add_ingestion_timestamp(
-    df: DataFrame, 
-    datetime_format: str
-) -> DataFrame:
-    """
-    Append the ingestion timestamp to the dataframe
-
-    Args:
-        df: A spark dataframe containing contents from the 
-            data read
-        datetime_format: The format the datetime variable is following,
-            e.g. iso 8601 format
-    
-    Returns:
-        A spark dataframe with an additional ingestion_timestamp
-        field added
-    """
-
-    ingestion_timestamp = get_datetime_now(datetime_format)
-
-    logger.info(f"Ingestion timestamp: {ingestion_timestamp}")
-    return df.withColumn("ingestion_timestamp", lit(ingestion_timestamp))
